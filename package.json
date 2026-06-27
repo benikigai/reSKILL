@@ -1,0 +1,13 @@
+{
+  "name": "reskill-selection-gate",
+  "version": "1.0.0",
+  "description": "reSKILL: a Gemini self-improvement selection gate for agent skills",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "license": "MIT"
+}
