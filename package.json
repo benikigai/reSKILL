@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check app.js && node --check scripts/gate.js && node --check scripts/speedrun.js",
+    "check": "node --check server.js && node --check app.js && node --check scripts/gate.js && node --check scripts/speedrun.js && node --check scripts/llm.js && node --check scripts/rewrite.js",
     "speedrun": "node scripts/speedrun.js"
   },
   "dependencies": {

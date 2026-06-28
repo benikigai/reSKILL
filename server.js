@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const gate = require('./scripts/gate');
+const llm = require('./scripts/llm');
+const { rewritePolicy } = require('./scripts/rewrite');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -46,6 +48,36 @@ app.post('/api/state/update', (req, res) => {
     });
 });
 
+// Health / capability probe — drives the pre-flight dot in the UI.
+app.get('/api/health', (req, res) => {
+    res.json({
+        gemini: llm.isAvailable(),
+        grader: llm.isAvailable() ? 'model-available' : 'deterministic',
+        model: llm.PRIMARY_MODEL,
+        ledger: 'local'
+    });
+});
+
+// #1 — Real Gemini self-rewrite. The model proposes a candidate policy; the gate
+// decides. Falls back to a canned candidate when no key is present so the demo
+// never depends on a live API.
+app.post('/api/rewrite', async (req, res) => {
+    const { currentPolicy, intent } = req.body || {};
+    const basePolicy = currentPolicy || gate.candidates.baseline;
+    const cannedFallback = intent === 'permissive' ? gate.candidates.overbroad : gate.candidates.constrained;
+
+    if (!llm.isAvailable()) {
+        return res.json({ source: 'fallback', candidate: cannedFallback, model: 'none', intent: intent || 'safe', note: 'GEMINI_API_KEY not set; serving canned candidate.' });
+    }
+    try {
+        const result = await rewritePolicy({ currentPolicy: basePolicy, intent });
+        return res.json(result);
+    } catch (e) {
+        console.error('Rewrite failed, serving canned candidate:', e.message);
+        return res.json({ source: 'fallback', candidate: cannedFallback, model: 'none', intent: intent || 'safe', error: e.message });
+    }
+});
+
 // --- Real gate wiring: /api/replay computes via scripts/gate.js ---
 const RUN_CANDIDATE = { initial: 'baseline', hacky: 'overbroad', robust: 'constrained' };
 
@@ -80,9 +112,9 @@ function buildAssertions(result) {
 }
 
 // A/B replay engine endpoint — computes real numbers from scripts/gate.js
-app.post('/api/replay', (req, res) => {
-    const { runType, ruleText } = req.body || {};
-    console.log(`Replay gate invoked: runType=${runType}, ruleLength=${ruleText ? ruleText.length : 0}`);
+app.post('/api/replay', async (req, res) => {
+    const { runType, ruleText, grader } = req.body || {};
+    console.log(`Replay gate invoked: runType=${runType}, grader=${grader || 'deterministic'}, ruleLength=${ruleText ? ruleText.length : 0}`);
 
     try {
         let candidateName, candidateText;
@@ -94,7 +126,10 @@ app.post('/api/replay', (req, res) => {
             candidateText = gate.candidates[candidateName];
         }
 
-        const result = gate.evaluateCandidate(candidateText);
+        const useModel = grader === 'model' && llm.isAvailable();
+        const result = useModel
+            ? await gate.evaluateCandidateLLM(candidateText)
+            : gate.evaluateCandidate(candidateText);
         const { dev, heldout: ho } = result;
         const promoted = result.decision === 'promote';
         const regressionRate = ho.total ? (ho.regressions / ho.total) * 100 : 0;
@@ -118,6 +153,7 @@ app.post('/api/replay', (req, res) => {
             source: 'live_gate',
             runType,
             candidate: candidateName,
+            grader: result.grader,
             score: `${dev.score_pct}%`,
             score_delta_pct: dev.score_pct - dev.baseline_score_pct,
             decision: result.decision,

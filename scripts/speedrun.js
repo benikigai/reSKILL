@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const { candidates, evaluateCandidate } = require('./gate');
+const { candidates, evaluateCandidate, evaluateCandidateLLM } = require('./gate');
+const llm = require('./llm');
 
 const repoRoot = path.join(__dirname, '..');
 const runsDir = path.join(repoRoot, 'runs');
@@ -60,15 +61,22 @@ function appendLeaderboard(run) {
   fs.appendFileSync(leaderboardPath, `${row}\n`);
 }
 
-function main() {
+async function main() {
   ensureRunsDir();
   const candidate = getCandidate();
+  const useModel = process.argv.includes('--grader=model') || process.env.RESKILL_GRADER === 'model';
+  if (useModel && !llm.isAvailable()) {
+    console.error('Model grader requested but GEMINI_API_KEY is not set; using deterministic gate.');
+  }
+  const result = useModel && llm.isAvailable()
+    ? await evaluateCandidateLLM(candidate.text)
+    : evaluateCandidate(candidate.text);
   const timestamp = new Date().toISOString();
   const run = {
     run_id: `run_${timestamp.replace(/[-:.TZ]/g, '').slice(0, 14)}_${candidate.name}`,
     timestamp,
     candidate: candidate.name,
-    result: evaluateCandidate(candidate.text)
+    result
   };
 
   fs.writeFileSync(latestPath, `${JSON.stringify(run, null, 2)}\n`);
@@ -76,6 +84,7 @@ function main() {
 
   console.log(`reSKILL speedrun: ${run.result.decision.toUpperCase()}`);
   console.log(`candidate=${run.candidate}`);
+  console.log(`grader=${run.result.grader}`);
   console.log(`dev=${run.result.dev.candidate_pass_count}/${run.result.dev.total}`);
   console.log(`heldout=${run.result.heldout.candidate_pass_count}/${run.result.heldout.total}`);
   console.log(`regressions=${run.result.heldout.regressions}`);
@@ -86,4 +95,7 @@ function main() {
   }
 }
 
-main();
+main().catch((e) => {
+  console.error(e.message);
+  process.exitCode = 1;
+});

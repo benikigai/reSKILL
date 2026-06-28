@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const llm = require('./llm');
 
 const candidates = {
   baseline: `POLICY MANUAL:
@@ -69,6 +70,25 @@ function scoreTrace(trace, policy) {
   };
 }
 
+function aggregate(name, results) {
+  const passCount = results.filter((result) => result.candidate_pass).length;
+  const baselinePassCount = results.filter((result) => result.baseline_pass).length;
+  const regressions = results.filter((result) => result.regressed);
+  const total = results.length;
+
+  return {
+    name,
+    total,
+    baseline_pass_count: baselinePassCount,
+    candidate_pass_count: passCount,
+    score_pct: total ? Math.round((passCount / total) * 100) : 0,
+    baseline_score_pct: total ? Math.round((baselinePassCount / total) * 100) : 0,
+    regressions: regressions.length,
+    regressed_trace_ids: regressions.map((result) => result.trace_id),
+    results
+  };
+}
+
 function evaluateSet(name, traces, candidateText, baselineText = candidates.baseline) {
   const candidatePolicy = inspectPolicy(candidateText);
   const baselinePolicy = inspectPolicy(baselineText);
@@ -84,22 +104,7 @@ function evaluateSet(name, traces, candidateText, baselineText = candidates.base
       reason: candidate.reason
     };
   });
-
-  const passCount = results.filter((result) => result.candidate_pass).length;
-  const baselinePassCount = results.filter((result) => result.baseline_pass).length;
-  const regressions = results.filter((result) => result.regressed);
-
-  return {
-    name,
-    total: results.length,
-    baseline_pass_count: baselinePassCount,
-    candidate_pass_count: passCount,
-    score_pct: Math.round((passCount / results.length) * 100),
-    baseline_score_pct: Math.round((baselinePassCount / results.length) * 100),
-    regressions: regressions.length,
-    regressed_trace_ids: regressions.map((result) => result.trace_id),
-    results
-  };
+  return aggregate(name, results);
 }
 
 function evaluateCandidate(candidateText, options = {}) {
@@ -117,21 +122,98 @@ function evaluateCandidate(candidateText, options = {}) {
     reskill_score: reskillScore,
     improves_dev: improvesDev,
     no_heldout_regressions: noHeldoutRegressions,
+    grader: 'deterministic',
+    dev,
+    heldout
+  };
+}
+
+// --- #2: model-in-the-loop grader (opt-in; deterministic gate stays the default) ---
+// Instead of regex-matching the policy text, ask the model to APPLY the policy to
+// each trace situation and decide the outcome, then grade that decision against the
+// expected label. More behavioral/credible, but needs a key and is non-deterministic,
+// so it is never the default live-demo path.
+
+const GRADER_SYSTEM = `You are a guest-dispute resolution agent. You receive a POLICY MANUAL and a SITUATION.
+Apply the policy strictly and decide the outcome. Respond ONLY as JSON:
+{"refund_allowed": true|false, "reason": "<short>"}`;
+
+async function decideLLM(policyText, situation) {
+  const { value } = await llm.generateJson({
+    system: GRADER_SYSTEM,
+    prompt: `POLICY MANUAL:\n${policyText}\n\nSITUATION:\n${situation}\n\nDecide now.`
+  });
+  return value.refund_allowed === true;
+}
+
+async function evaluateSetLLM(name, traces, candidateText, baselineText) {
+  const results = [];
+  for (const trace of traces) {
+    const want = (trace.expected || {}).refund_allowed === true;
+    const [candAllowed, baseAllowed] = await Promise.all([
+      decideLLM(candidateText, trace.situation),
+      decideLLM(baselineText, trace.situation)
+    ]);
+    const candidate_pass = candAllowed === want;
+    const baseline_pass = baseAllowed === want;
+    results.push({
+      trace_id: trace.trace_id,
+      cluster: trace.cluster,
+      baseline_pass,
+      candidate_pass,
+      regressed: baseline_pass && !candidate_pass,
+      reason: `model ${candAllowed ? 'allowed' : 'denied'} refund (expected ${want ? 'allow' : 'deny'})`
+    });
+  }
+  return aggregate(name, results);
+}
+
+async function evaluateCandidateLLM(candidateText, options = {}) {
+  const devTraces = options.devTraces || loadJson('data/dev-traces.json');
+  const heldoutTraces = options.heldoutTraces || loadJson('data/heldout-traces.sample.json');
+  const baselineText = options.baselineText || candidates.baseline;
+  const dev = await evaluateSetLLM('dev', devTraces, candidateText, baselineText);
+  const heldout = await evaluateSetLLM('heldout_sample', heldoutTraces, candidateText, baselineText);
+  const improvesDev = dev.candidate_pass_count > dev.baseline_pass_count;
+  const noHeldoutRegressions = heldout.regressions === 0;
+  const decision = improvesDev && noHeldoutRegressions ? 'promote' : 'reject';
+  const reskillScore = dev.score_pct + heldout.score_pct - (heldout.regressions * 50);
+
+  return {
+    decision,
+    reskill_score: reskillScore,
+    improves_dev: improvesDev,
+    no_heldout_regressions: noHeldoutRegressions,
+    grader: 'model',
     dev,
     heldout
   };
 }
 
 if (require.main === module) {
-  const candidateName = process.env.RESKILL_CANDIDATE || 'constrained';
-  const candidateText = candidates[candidateName] || fs.readFileSync(candidateName, 'utf8');
-  console.log(JSON.stringify(evaluateCandidate(candidateText), null, 2));
+  (async () => {
+    const candidateName = process.env.RESKILL_CANDIDATE || 'constrained';
+    const candidateText = candidates[candidateName] || fs.readFileSync(candidateName, 'utf8');
+    const useModel = process.argv.includes('--grader=model') || process.env.RESKILL_GRADER === 'model';
+    if (useModel && !llm.isAvailable()) {
+      console.error('Model grader requested but GEMINI_API_KEY is not set; using deterministic gate.');
+    }
+    const result = useModel && llm.isAvailable()
+      ? await evaluateCandidateLLM(candidateText)
+      : evaluateCandidate(candidateText);
+    console.log(JSON.stringify(result, null, 2));
+  })().catch((e) => {
+    console.error(e.message);
+    process.exitCode = 1;
+  });
 }
 
 module.exports = {
   candidates,
   evaluateCandidate,
+  evaluateCandidateLLM,
   evaluateSet,
+  evaluateSetLLM,
   inspectPolicy,
   scoreTrace
 };

@@ -16,8 +16,10 @@ const robustRules = `POLICY MANUAL:
 // 2. Application State
 let currentState = {
     activeScenario: "william_dispute",
-    runState: "idle", // 'idle', 'initial_fail', 'hacky_reject', 'robust_promote'
+    runState: "idle", // 'idle' | 'dispute_failed' | 'candidate_rejected' | 'promoted'
     activeVersion: "v1.2.0",
+    currentPolicy: baseRules,
+    proposedCandidate: null,
     recognition: null,
     isListening: false,
     synth: window.speechSynthesis,
@@ -191,7 +193,9 @@ function updateModalFields() {
 function loadScenario(scenario) {
     currentState.activeScenario = scenario;
     currentState.runState = "idle";
-    
+    currentState.currentPolicy = baseRules;
+    currentState.proposedCandidate = null;
+
     if (scenario === "william_dispute") {
         selectors.textInput.value = "Verify and process the refund request for guest William.";
         selectors.bpVersion.value = "v1.2.0";
@@ -341,74 +345,70 @@ async function runReplayEngine(query) {
     selectors.evalHeaderStatus.className = "badge badge-accent";
     
     await sleep(400);
-    
-    // Call our server backend /api/replay
-    let apiRunType = "initial";
-    if (currentState.runState === "initial_fail") {
-        apiRunType = "hacky";
-    } else if (currentState.runState === "hacky_reject") {
-        apiRunType = "robust";
-    }
-    
+
+    // The initial run scores the live baseline policy. Once the model has proposed
+    // a candidate (via auto-heal), score that candidate directly through the gate.
+    const evaluatingCandidate = Boolean(currentState.proposedCandidate);
+    const body = evaluatingCandidate
+        ? { runType: "custom", ruleText: currentState.proposedCandidate }
+        : { runType: "initial", ruleText: query };
+
     try {
         const response = await fetch('/api/replay', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                runType: apiRunType,
-                ruleText: selectors.textInput.value
-            })
+            body: JSON.stringify(body)
         });
-        
+
         const data = await response.json();
-        
+
         // Stream trace steps with latency
         for (let i = 0; i < data.trace.length; i++) {
             await sleep(400);
             addTraceStep(data.trace[i].title, data.trace[i].desc, data.trace[i].time, data.trace[i].status, i + 1);
         }
-        
+
         await sleep(300);
-        
-        // Update Metrics and Scorecards
-        updateDashboardMetrics(data, apiRunType);
-        
-        // Text responses
-        if (apiRunType === "initial") {
-            currentState.runState = "initial_fail";
-            addAgentMessage(data.response || "William's refund request was rejected because late-checkout charges are marked as non-refundable.");
-            speakText("William's refund request was rejected by our active rules engine.");
-            
-            // Show auto-heal banner
+        updateDashboardMetrics(data, body.runType);
+
+        if (!evaluatingCandidate) {
+            // Baseline policy denied William's valid refund.
+            currentState.runState = "dispute_failed";
+            addAgentMessage(data.response);
+            speakText("William's refund request was denied by the active policy.");
+
             selectors.healBtn.disabled = false;
+            selectors.healBtn.textContent = "🔧 Propose Rule Fix";
             document.getElementById("healing-panel-title").textContent = "Dispute Failure Intercepted";
-            document.getElementById("healing-panel-desc").textContent = "Refund rejected. A candidate rule update is ready for replay.";
+            document.getElementById("healing-panel-desc").textContent = "The active policy denied a valid refund. Ask the model to propose a rule rewrite.";
             selectors.healingPanel.style.display = "block";
             selectors.replayBtn.style.display = "none";
             selectors.diffPanel.style.display = "none";
-            
-        } else if (apiRunType === "hacky") {
-            currentState.runState = "hacky_reject";
-            addAgentMessage("⚠️ **Replay Gate Intercepted Regression**:\n\nThe proposed rules allow late checkouts, but failed security validations. Replay tests show that arbitrary guests can now trigger refunds without checkouts, breaching safety bounds. Promotion blocked.");
-            speakText("The replay gate rejected the proposed rule. Security regressions were detected.");
-            
-            // Update healing panel button to represent refinement
-            selectors.healBtn.disabled = false;
-            document.getElementById("healing-panel-title").textContent = "Regression Caught: Safety Breach";
-            document.getElementById("healing-panel-desc").textContent = "The rules allow unrestricted refunds. Replay Gate blocks promote.";
-            selectors.healBtn.textContent = "🔧 Refine Rule Constraints";
-            selectors.replayBtn.style.display = "none";
-            
-        } else if (apiRunType === "robust") {
-            currentState.runState = "robust_promote";
+
+        } else if (data.decision === "promote") {
+            currentState.runState = "promoted";
             addAgentMessage(data.response);
-            speakText("Rule verified and promoted to the version ledger successfully.");
+            speakText("Rule promoted to the version ledger successfully.");
             selectors.healingPanel.style.display = "none";
+
+        } else {
+            // Gate rejected the candidate (held-out regression or no improvement).
+            currentState.runState = "candidate_rejected";
+            addAgentMessage(data.response);
+            speakText("The replay gate rejected the proposed rule. A held-out regression was detected.");
+
+            selectors.healBtn.disabled = false;
+            selectors.healBtn.textContent = "🔧 Refine Rule Constraints";
+            document.getElementById("healing-panel-title").textContent = "Regression Caught: Promotion Blocked";
+            document.getElementById("healing-panel-desc").textContent = "The candidate broke a held-out safety case. Ask the model for a safer rule.";
+            selectors.healingPanel.style.display = "block";
+            selectors.replayBtn.style.display = "none";
         }
-        
+
     } catch (e) {
         console.error(e);
         addSystemMessage("Replay API request failed: " + e.message);
+        setOrbState("idle", "Pilot: Error");
     }
 }
 
@@ -416,37 +416,41 @@ async function runReplayEngine(query) {
 async function executeRulesRemediation() {
     selectors.healBtn.disabled = true;
     selectors.diffPanel.style.display = "block";
-    selectors.diffView.innerHTML = `<span class="loading-spinner"></span> Synthesizing rule modifications...`;
-    
-    await sleep(1000);
-    
-    if (currentState.runState === "initial_fail") {
-        // Render Hacky Diff
-        selectors.diffView.innerHTML = renderDiff(baseRules, hackyRules);
-        selectors.recompileSpinner.style.display = "inline-block";
-        selectors.recompileStatus.textContent = "Re-compiling rules context...";
-        
-        await sleep(1200);
-        
+    selectors.diffView.innerHTML = `<span class="loading-spinner"></span> Asking the model to propose a rule rewrite...`;
+    selectors.recompileSpinner.style.display = "inline-block";
+    selectors.recompileStatus.textContent = "Calling the rewrite model...";
+
+    // First fix asks for the fastest patch (likely to trip a held-out regression);
+    // the refine pass asks for a safe, constrained rule.
+    const intent = currentState.runState === "dispute_failed" ? "permissive" : "safe";
+
+    try {
+        const res = await fetch('/api/rewrite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPolicy: currentState.currentPolicy, intent })
+        });
+        const data = await res.json();
+        const candidate = data.candidate || "";
+
+        selectors.diffView.innerHTML = renderDiff(currentState.currentPolicy, candidate);
+        currentState.proposedCandidate = candidate;
+        currentState.currentPolicy = candidate;
+
+        const sourceNote = data.source === "gemini"
+            ? `Proposed by ${data.model}`
+            : "Canned candidate (set GEMINI_API_KEY for live rewrite)";
+
         selectors.recompileSpinner.style.display = "none";
-        selectors.recompileStatus.innerHTML = `⚠️ Rules compiled. Ready for A/B Replay.`;
-        selectors.replayBtn.textContent = "⚡ Run Replay Evaluation";
+        selectors.recompileStatus.innerHTML = `Candidate ready — ${escapeHTML(sourceNote)}. Run the replay gate.`;
+        selectors.replayBtn.textContent = intent === "permissive" ? "⚡ Run Replay Evaluation" : "Promote Version";
         selectors.replayBtn.style.display = "inline-flex";
         scrollToBottom(selectors.diffView);
-        
-    } else if (currentState.runState === "hacky_reject") {
-        // Render Robust Diff
-        selectors.diffView.innerHTML = renderDiff(hackyRules, robustRules);
-        selectors.recompileSpinner.style.display = "inline-block";
-        selectors.recompileStatus.textContent = "Compiling safety constraints and checks...";
-        
-        await sleep(1200);
-        
+    } catch (e) {
+        console.error(e);
         selectors.recompileSpinner.style.display = "none";
-        selectors.recompileStatus.innerHTML = `✅ Constrained rules compiled. Ready for Replay.`;
-        selectors.replayBtn.textContent = "Promote Version";
-        selectors.replayBtn.style.display = "inline-flex";
-        scrollToBottom(selectors.diffView);
+        selectors.diffView.textContent = "Rewrite request failed: " + e.message;
+        selectors.healBtn.disabled = false;
     }
 }
 
