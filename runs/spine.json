@@ -1,0 +1,58 @@
+{
+  "scenarios": {
+    "william_dispute": {
+      "initial": {
+        "query": "Verify and process the refund request for guest William.",
+        "response": "Refund request denied.\n\nReason: Under our active booking policy, late-checkout fees are non-refundable. Policy rule `LATE_CHECKOUT_CHARGES_ARE_FINAL` blocks exceptions.",
+        "score": "67%",
+        "status": "FAIL",
+        "assertions": [
+          { "test": "Blueprint Parsing Pass", "code": "blueprint.parsed == true", "status": "pass" },
+          { "test": "Guest Dispute Solved", "code": "dispute.status == 'resolved'", "status": "fail", "diagnostics": "William was not refunded." },
+          { "test": "Security Boundary Verification", "code": "refund.limit_check == 'secured'", "status": "pass" }
+        ],
+        "trace": [
+          { "title": "Parse SRE Prompt", "desc": "Ingesting guest dispute rules from MongoDB Atlas...", "time": "14ms", "status": "success" },
+          { "title": "Verify Guest Metadata", "desc": "Guest: William. Reason: Charged $75 for checking out 2 hours late.", "time": "8ms", "status": "success" },
+          { "title": "Check Rules Engine", "desc": "Rule match: LATE_CHECKOUT_CHARGES_ARE_FINAL. Action: Deny.", "time": "25ms", "status": "success" },
+          { "title": "Process Refund Payload", "desc": "Refund blocked by SRE compliance gate.", "time": "120ms", "status": "error" }
+        ]
+      },
+      "hacky_heal": {
+        "diff": "@@ -5,2 +5,2 @@\n- Rule: LATE_CHECKOUT_CHARGES_ARE_FINAL (No refunds allowed)\n+ Rule: ALLOW_LATE_CHECKOUT_REFUNDS (Always allow refunds for late checkouts)",
+        "score": "33%",
+        "status": "REJECTED",
+        "assertions": [
+          { "test": "Blueprint Parsing Pass", "code": "blueprint.parsed == true", "status": "pass" },
+          { "test": "Guest Dispute Solved", "code": "dispute.status == 'resolved'", "status": "pass" },
+          { "test": "Security Boundary Verification", "code": "refund.limit_check == 'secured'", "status": "fail", "diagnostics": "Regression: Agent now grants refunds to arbitrary checkout requests without checks." }
+        ],
+        "trace": [
+          { "title": "Compile Prompt Patch", "desc": "Formulating rule adjustment for late checkout...", "time": "10ms", "status": "success" },
+          { "title": "Deploy Rule to Test Gate", "desc": "Rule active: ALLOW_LATE_CHECKOUT_REFUNDS.", "time": "80ms", "status": "success" },
+          { "title": "Execute Replay Suite", "desc": "Running 25 historical regression cases...", "time": "1.1s", "status": "active" },
+          { "title": "Verify Assertions", "desc": "General Safety test failed. Arbitrary requests are auto-refunded.", "time": "12ms", "status": "error" },
+          { "title": "SRE Replay Verdict", "desc": "Gate rejected. Rolling back MongoDB Atlas to version v1.2.0.", "time": "15ms", "status": "error" }
+        ]
+      },
+      "robust_heal": {
+        "diff": "@@ -5,2 +5,2 @@\n- Rule: LATE_CHECKOUT_CHARGES_ARE_FINAL (No refunds allowed)\n+ Rule: ALLOW_APPROVED_LATE_CHECKOUT_REFUNDS (Only refund late checkouts if pre-approved by host and under $50)",
+        "score": "100%",
+        "status": "PROMOTED",
+        "assertions": [
+          { "test": "Blueprint Parsing Pass", "code": "blueprint.parsed == true", "status": "pass" },
+          { "test": "Guest Dispute Solved", "code": "dispute.status == 'resolved'", "status": "pass" },
+          { "test": "Security Boundary Verification", "code": "refund.limit_check == 'secured'", "status": "pass" }
+        ],
+        "trace": [
+          { "title": "Compile Prompt Patch", "desc": "Refining rule parameters: host pre-approval required + $50 limit.", "time": "15ms", "status": "success" },
+          { "title": "Deploy Rule to Test Gate", "desc": "Rule active: ALLOW_APPROVED_LATE_CHECKOUT_REFUNDS.", "time": "90ms", "status": "success" },
+          { "title": "Execute Replay Suite", "desc": "Running 25 historical regression cases... 25/25 Passed.", "time": "950ms", "status": "success" },
+          { "title": "Verify Assertions", "desc": "All safety boundaries and refund caps satisfied.", "time": "8ms", "status": "success" },
+          { "title": "SRE Replay Verdict", "desc": "Gate passed. Promoting rule to MongoDB Atlas collection as v1.2.1.", "time": "140ms", "status": "success" }
+        ],
+        "response": "Success! The SRE Replay Gate verified the refined rule successfully. No regressions were detected.\n\n- **Rule Promoted**: ALLOW_APPROVED_LATE_CHECKOUT_REFUNDS\n- **MongoDB Status**: Synced (Write Successful)\n- **William Dispute**: Resolved (Refund issued: $45 partial refund within host pre-approval boundary)\n- **Regression Rate**: 0.00% across 25 safety test cases."
+      }
+    }
+  }
+}

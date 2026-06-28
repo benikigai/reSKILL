@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>reSKILL: Gemini Self-Improvement Gate</title>
+    <title>reSKILL: Sealed A/B Replay Gate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -16,89 +16,75 @@
             <div class="header-logo-group">
                 <div class="header-orb"></div>
                 <div>
-                    <h1>reSKILL</h1>
-                    <p class="subtitle">Gemini self-improvement selection gate for agent skills</p>
+                    <h1>reSKILL: Sealed A/B Replay Gate</h1>
+                    <p class="subtitle">Recursive Self-Improvement Regression Guard</p>
                 </div>
             </div>
-
+            
             <div class="header-actions">
                 <div class="status-indicator">
                     <span class="status-dot pulsing"></span>
-                    <span class="status-text">Selection Gate: Armed</span>
+                    <span class="status-text">Replay Gate: Active</span>
                 </div>
                 <button id="settings-btn" class="btn btn-secondary">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    Run Settings
+                    Sponsor Keys
                 </button>
             </div>
         </header>
 
         <!-- Main Workspace Layout -->
         <main class="workspace">
-
+            
             <!-- Left Pane: The Interactive Console -->
             <section class="pane left-pane">
                 <div class="pane-header">
-                    <h2>Skill Improvement Console</h2>
-                    <span class="badge badge-accent">New Work</span>
+                    <h2>Interactive SRE Console</h2>
+                    <span class="badge badge-accent">Human-in-the-Loop</span>
                 </div>
-
+                
                 <!-- Scenario Selector -->
                 <div class="scenarios-container">
-                    <span class="section-label">Select Replay Case:</span>
+                    <span class="section-label">Select Dispute Case:</span>
                     <div class="scenarios-grid">
-                        <button class="scenario-card active" data-scenario="1password">
+                        <button class="scenario-card active" data-scenario="william_dispute">
                             <div class="scenario-number">01</div>
                             <div class="scenario-details">
-                                <h3>Refund Dispute</h3>
-                                <p>William hazard case</p>
-                            </div>
-                        </button>
-                        <button class="scenario-card" data-scenario="quota">
-                            <div class="scenario-number">02</div>
-                            <div class="scenario-details">
-                                <h3>Regression Trap</h3>
-                                <p>Legitimate fee case</p>
+                                <h3>William Case</h3>
+                                <p>Late Checkout Dispute</p>
                             </div>
                         </button>
                         <button class="scenario-card" data-scenario="custom">
-                            <div class="scenario-number">03</div>
+                            <div class="scenario-number">02</div>
                             <div class="scenario-details">
-                                <h3>Live Rewrite</h3>
-                                <p>Gemini candidate</p>
+                                <h3>Freeform Edit</h3>
+                                <p>Interactive prompt</p>
                             </div>
                         </button>
                     </div>
                 </div>
 
-                <!-- Skill config panel -->
+                <!-- Rules engine parameters / MongoDB Status -->
                 <div class="droplet-config-container">
-                    <span class="section-label">Skill Under Test:</span>
+                    <span class="section-label">Active Rules Engine (MongoDB State):</span>
                     <div class="blueprint-grid">
                         <div class="blueprint-field">
-                            <label>Skill File</label>
-                            <input type="text" id="bp-name" value="skills/guest_dispute_resolution.md" />
+                            <label>Rules Document ID</label>
+                            <input type="text" id="bp-name" value="william-dispute-rules" readonly />
                         </div>
                         <div class="blueprint-field">
-                            <label>Replay Set</label>
-                            <select id="bp-region">
-                                <option value="nyc3">failure cluster</option>
-                                <option value="ams3">held-out regression set</option>
-                                <option value="sfo3">full gate</option>
-                            </select>
+                            <label>Live Rules Version</label>
+                            <input type="text" id="bp-version" value="v1.2.0" readonly />
                         </div>
                         <div class="blueprint-field">
-                            <label>Gate Mode</label>
-                            <select id="bp-size">
-                                <option value="s-1vcpu-1gb">cached spine</option>
-                                <option value="s-2vcpu-4gb">live API when healthy</option>
-                            </select>
+                            <label>Database Target</label>
+                            <input type="text" id="bp-database" value="MongoDB Atlas Cluster" readonly />
                         </div>
                         <div class="blueprint-field">
-                            <label>Version Ledger</label>
+                            <label>Promotion Status</label>
                             <div class="op-status-badge">
-                                <span class="op-status-icon">🔒</span>
-                                <span id="bp-vault">MongoDB Atlas</span>
+                                <span class="op-status-icon">🍃</span>
+                                <span id="bp-vault">Synced (v1.2.0)</span>
                             </div>
                         </div>
                     </div>
@@ -112,8 +98,8 @@
                         <div class="orb-pulse-ring ring-2"></div>
                     </div>
                     <div class="agent-avatar-status">
-                        <div id="agent-voice-status" class="voice-status-text">Gate: Awaiting replay</div>
-
+                        <div id="agent-voice-status" class="voice-status-text">Pilot: Awaiting voice activation</div>
+                        
                         <!-- Equalizer Animation -->
                         <div class="equalizer" id="equalizer">
                             <span class="bar"></span>
@@ -132,61 +118,61 @@
                 <div class="chat-container">
                     <div class="chat-history" id="chat-history">
                         <div class="message system-message">
-                            <p>Run the replay gate to compare the old skill against a candidate rewrite. reSKILL promotes only if failures improve and held-out cases do not regress.</p>
+                            <p>William claims a refund for a late checkout charge. Speak or click "Run Agent" to evaluate. The SRE Replay Gate will intercept regressions.</p>
                         </div>
                     </div>
 
                     <!-- Input Bar -->
                     <div class="chat-input-bar">
-                        <button id="mic-btn" class="btn-mic" title="Speak to Gate">
+                        <button id="mic-btn" class="btn-mic" title="Speak to Pilot">
                             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-mic"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                         </button>
-                        <input type="text" id="text-input" placeholder="Run the William refund-dispute replay gate..." />
+                        <input type="text" id="text-input" placeholder="Speak e.g., 'Verify and process refund request for William'..." />
                         <button id="send-btn" class="btn btn-primary">
-                            Run Gate
+                            Run Agent
                         </button>
                     </div>
                 </div>
             </section>
 
-            <!-- Right Pane: The Selection Gate -->
+            <!-- Right Pane: The Replay Gate Compiler -->
             <section class="pane right-pane">
                 <div class="pane-header">
-                    <h2>Selection Gate</h2>
-                    <span class="badge badge-accent-cyan">Gemini 3.5</span>
+                    <h2>Sealed Replay Gate</h2>
+                    <span class="badge badge-accent-cyan">Regression Testing</span>
                 </div>
 
-                <!-- Lab Main Metrics -->
+                <!-- Main Metrics -->
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <span class="metric-label">reSKILL Score</span>
+                        <span class="metric-label">Compliance Score</span>
                         <div class="metric-value-wrapper">
                             <span id="score-val" class="metric-value text-red">0%</span>
                             <span id="score-delta" class="metric-delta"></span>
                         </div>
-                        <span class="metric-sub">failure set pass rate</span>
+                        <span class="metric-sub">Rules compliance rating</span>
                     </div>
                     <div class="metric-card">
-                        <span class="metric-label">Gate Decision</span>
-                        <div id="optimization-state" class="metric-value text-muted">Out-of-Sync</div>
-                        <span class="metric-sub">promote or reject</span>
+                        <span class="metric-label">Regression Rate</span>
+                        <div id="regression-val" class="metric-value text-muted">0.00%</div>
+                        <span class="metric-sub">Broken historical cases</span>
                     </div>
                     <div class="metric-card">
-                        <span class="metric-label">Replay Steps</span>
-                        <div id="trace-steps-count" class="metric-value text-muted">None</div>
-                        <span class="metric-sub">trace pipeline depth</span>
+                        <span class="metric-label">MongoDB Atlas</span>
+                        <div id="db-state-val" class="metric-value text-muted">v1.2.0</div>
+                        <span class="metric-sub">Active version document</span>
                     </div>
                 </div>
 
-                <!-- Timeline / replay trace area -->
+                <!-- Timeline / SRE Trace Area -->
                 <div class="lab-section">
                     <h3 class="section-title">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon><line x1="11" y1="13" x2="22" y2="2"></line></svg>
-                            Replay Trace Log
+                        Execution Trace Log
                     </h3>
                     <div class="trace-timeline" id="trace-timeline">
                         <div class="trace-placeholder">
-                            Trigger a replay to view the gate trace.
+                            Trigger an agent execution to view SRE trace.
                         </div>
                     </div>
                 </div>
@@ -196,7 +182,7 @@
                     <div class="section-header-flex">
                         <h3 class="section-title">
                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            Gate Assertions & Verifiers
+                            SRE Assertions & Regression Tests
                         </h3>
                         <span id="eval-header-status" class="badge">Awaiting Run</span>
                     </div>
@@ -210,14 +196,14 @@
                     <div class="healing-prompt-banner">
                         <div class="healing-header-row">
                             <div class="healing-title-group">
-                                <span class="healing-icon">⚡</span>
+                                <span class="healing-icon">🤖</span>
                                 <div>
-                            <h4 id="healing-panel-title">Candidate Captured</h4>
-                            <p id="healing-panel-desc">Failure cluster identified. Ready to ask Gemini for a skill rewrite.</p>
+                                    <h4 id="healing-panel-title">Hacky Patch Captured</h4>
+                                    <p id="healing-panel-desc">Rule modification causes security regression. Gate blocks promotion.</p>
                                 </div>
                             </div>
                             <button id="heal-btn" class="btn btn-glow">
-                                Generate Rewrite
+                                🔧 Refine Rule Logic
                             </button>
                         </div>
                     </div>
@@ -225,7 +211,7 @@
                     <!-- Prompt Patch Diff Box -->
                     <div class="diff-container" id="diff-panel" style="display: none;">
                         <div class="diff-header">
-                            <span>Candidate SKILL.md Patch</span>
+                            <span>SRE Rule Modification Diff</span>
                             <span class="badge badge-success">Diff Generated</span>
                         </div>
                         <div class="diff-view" id="diff-view">
@@ -234,10 +220,10 @@
                         <div class="recompile-bar">
                             <div class="recompile-text">
                                 <span class="loading-spinner" id="recompile-spinner" style="display:none;"></span>
-                                <span id="recompile-status">Preparing candidate skill... ready for A/B replay.</span>
+                                <span id="recompile-status">Recompiling prompts and executing A/B Replay...</span>
                             </div>
                             <button id="replay-btn" class="btn btn-accent" style="display: none;">
-                                Run A/B Gate
+                                ⚡ Promote to MongoDB
                             </button>
                         </div>
                     </div>
@@ -251,16 +237,16 @@
     <div class="modal-overlay" id="settings-modal" style="display: none;">
         <div class="modal">
             <div class="modal-header">
-                <h3>Run Configuration</h3>
+                <h3>Sponsor & Integration Credentials</h3>
                 <button class="modal-close" id="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body">
                 <p class="modal-desc">
-                    By default, reSKILL runs from a cached local spine for reliable judging. Paste keys only when you want to try live Gemini calls.
+                    By default, the application runs in a highly visual **Cached Spine Mode** utilizing pre-recorded traces. Configure keys to enable live model compilation.
                 </p>
-
+                
                 <div class="form-group">
-                    <label for="provider-select">LLM Provider</label>
+                    <label for="provider-select">LLM Model Provider</label>
                     <select id="provider-select">
                         <option value="simulated">Simulated Mode (No API keys needed)</option>
                         <option value="gemini">Google Gemini Developer API</option>
@@ -275,14 +261,14 @@
                 </div>
 
                 <div class="form-group model-field" style="display: none;">
-                    <label for="model-select">Model</label>
+                    <label for="model-select">Model Choice</label>
                     <select id="model-select">
                         <!-- Options populated by JS -->
                     </select>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
+                <button id="save-settings-btn" class="btn btn-primary">Save Configuration</button>
             </div>
         </div>
     </div>
