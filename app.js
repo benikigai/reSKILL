@@ -461,37 +461,35 @@ async function executePromotion() {
 // 8. Metric Dashboard Helpers
 function updateDashboardMetrics(data, runType) {
     selectors.scoreVal.textContent = data.score;
-    
-    if (runType === "initial") {
-        selectors.scoreVal.className = "metric-value text-red";
-        selectors.regressionVal.textContent = "0.00%";
-        selectors.regressionVal.className = "metric-value text-muted";
-        selectors.evalHeaderStatus.textContent = "FAIL";
-        selectors.evalHeaderStatus.className = "badge badge-error";
-    } else if (runType === "hacky") {
-        selectors.scoreVal.className = "metric-value text-red";
-        selectors.regressionVal.textContent = "50.00%";
-        selectors.regressionVal.className = "metric-value text-red";
-        selectors.evalHeaderStatus.textContent = "REJECTED";
-        selectors.evalHeaderStatus.className = "badge badge-error";
-    } else if (runType === "robust") {
-        selectors.scoreVal.className = "metric-value text-green";
-        selectors.regressionVal.textContent = "0.00%";
-        selectors.regressionVal.className = "metric-value text-green";
+
+    // Real, gate-computed verdict (degrades to cached-spine `status` field if the
+    // server fell back to runs/spine.json).
+    const promoted = data.decision === "promote" || data.status === "PROMOTED";
+    const hasRegression = (data.heldout && data.heldout.regressions > 0) || data.status === "REJECTED";
+
+    selectors.scoreVal.className = "metric-value " + (promoted ? "text-green" : "text-red");
+
+    selectors.regressionVal.textContent = data.regression_rate || (hasRegression ? "100.00%" : "0.00%");
+    selectors.regressionVal.className = "metric-value " + (hasRegression ? "text-red" : (promoted ? "text-green" : "text-muted"));
+
+    if (promoted) {
         selectors.evalHeaderStatus.textContent = "PASSED";
         selectors.evalHeaderStatus.className = "badge badge-success";
-        
-        // Version promoted
+
         selectors.bpVersion.value = "v1.2.1";
         selectors.dbStateVal.textContent = "v1.2.1";
         selectors.dbStateVal.className = "metric-value text-green";
         selectors.bpVault.textContent = "Synced (v1.2.1)";
-        
-        // Delta Badge
-        selectors.scoreDelta.textContent = "(+33%)";
-        selectors.scoreDelta.className = "metric-delta";
+
+        if (typeof data.score_delta_pct === "number" && data.score_delta_pct > 0) {
+            selectors.scoreDelta.textContent = `(+${data.score_delta_pct}%)`;
+            selectors.scoreDelta.className = "metric-delta";
+        }
+    } else {
+        selectors.evalHeaderStatus.textContent = hasRegression ? "REJECTED" : "FAIL";
+        selectors.evalHeaderStatus.className = "badge badge-error";
     }
-    
+
     selectors.traceStepsCount.textContent = `${data.trace.length} Steps`;
     
     // Build assertions list
