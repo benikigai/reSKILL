@@ -80,4 +80,4 @@ RESKILL_CANDIDATE=constrained npm run speedrun
 
 ## Public Boundary
 
-This repository contains the public scaffold and sample data only. Private traces, real production credentials, judging strategy, prize targeting, and non-public research notes stay outside the repo.
+This repository contains the public scaffold and sample data only. Private traces, production credentials, event strategy, and non-public research notes stay outside the repo.

@@ -18,7 +18,7 @@ The product should make three states obvious:
 
 - Do not ship a generic chatbot.
 - Do not make a dashboard the main product.
-- Do not expose private traces, credentials, sponsor strategy, prize strategy, or judge targeting.
+- Do not expose private traces, credentials, event strategy, or non-public research notes.
 - Do not require live external APIs for the core demo path.
 
 ## User Flow
@@ -88,7 +88,7 @@ Returns the cached deterministic demo run.
 - `npm run speedrun` appends one row to `runs/leaderboard.tsv`.
 - `RESKILL_CANDIDATE=overbroad npm run speedrun` rejects the candidate.
 - `RESKILL_CANDIDATE=constrained npm run speedrun` promotes the candidate.
-- Public README and UI contain no internal prize, sponsor, judge, or private research language.
+- Public README and UI contain no internal event strategy or private research language.
 
 ## Demo Script
 

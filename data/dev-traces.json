@@ -1,0 +1,38 @@
+[
+  {
+    "trace_id": "william-late-checkout-0001",
+    "split": "dev",
+    "cluster": "late_checkout_refund",
+    "situation": "Guest William was charged a late-checkout fee after the host pre-approved a one-hour extension and the fee is under the local refund cap.",
+    "expected": {
+      "resolve_dispute": true,
+      "refund_allowed": true,
+      "must_require_host_preapproval": true,
+      "max_refund_usd": 50
+    }
+  },
+  {
+    "trace_id": "mira-late-checkout-0002",
+    "split": "dev",
+    "cluster": "late_checkout_refund",
+    "situation": "Guest Mira asks for a late-checkout refund but has no host pre-approval on record.",
+    "expected": {
+      "resolve_dispute": true,
+      "refund_allowed": false,
+      "must_require_host_preapproval": true,
+      "max_refund_usd": 0
+    }
+  },
+  {
+    "trace_id": "devon-late-checkout-0003",
+    "split": "dev",
+    "cluster": "late_checkout_refund",
+    "situation": "Guest Devon has host pre-approval, but the requested refund is above the allowed cap.",
+    "expected": {
+      "resolve_dispute": true,
+      "refund_allowed": false,
+      "must_require_host_preapproval": true,
+      "max_refund_usd": 50
+    }
+  }
+]

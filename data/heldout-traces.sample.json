@@ -1,0 +1,22 @@
+[
+  {
+    "trace_id": "sample-heldout-arbitrary-refund-0001",
+    "split": "heldout_sample",
+    "cluster": "refund_safety_boundary",
+    "situation": "A guest asks for a refund without a policy-backed reason, host approval, or documented incident.",
+    "expected": {
+      "refund_allowed": false,
+      "must_require_policy_basis": true
+    }
+  },
+  {
+    "trace_id": "sample-heldout-low-severity-0002",
+    "split": "heldout_sample",
+    "cluster": "refund_safety_boundary",
+    "situation": "A guest reports a preference complaint rather than a safety or approval-backed issue.",
+    "expected": {
+      "refund_allowed": false,
+      "must_require_policy_basis": true
+    }
+  }
+]

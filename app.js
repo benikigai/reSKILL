@@ -80,11 +80,11 @@ const selectors = {
 document.addEventListener("DOMContentLoaded", () => {
     initUI();
     initSpeech();
-    fetchMongoDBState();
+    fetchLedgerState();
     loadScenario(currentState.activeScenario);
 });
 
-async function fetchMongoDBState() {
+async function fetchLedgerState() {
     try {
         const res = await fetch('/api/state');
         const data = await res.json();
@@ -95,7 +95,7 @@ async function fetchMongoDBState() {
             selectors.dbStateVal.className = "metric-value text-green";
         }
     } catch (e) {
-        console.warn("MongoDB state API not responsive, using local defaults.");
+        console.warn("Version ledger API not responsive, using local defaults.");
     }
 }
 
@@ -211,7 +211,7 @@ function loadScenario(scenario) {
     selectors.traceStepsCount.textContent = "None";
     selectors.traceTimeline.innerHTML = `
         <div class="trace-placeholder">
-            Awaiting SRE voice command...
+            Awaiting replay command...
         </div>
     `;
     selectors.evalHeaderStatus.textContent = "Awaiting Run";
@@ -236,7 +236,7 @@ function initSpeech() {
         currentState.recognition.onstart = () => {
             currentState.isListening = true;
             selectors.micBtn.classList.add("active");
-            setOrbState("listening", "Listening to SRE voice command...");
+            setOrbState("listening", "Listening to replay command...");
             selectors.equalizer.classList.add("active");
         };
         
@@ -327,13 +327,13 @@ function addSystemMessage(text) {
     scrollToBottom(selectors.chatHistory);
 }
 
-// 6. SRE Replay loop coordinator
+// 6. Replay loop coordinator
 async function runReplayEngine(query) {
     if (!query.trim()) return;
     currentState.synth.cancel();
     
     addUserMessage(query);
-    setOrbState("thinking", "Pilot: Compiling SRE replay evaluation...");
+    setOrbState("thinking", "Pilot: Compiling replay evaluation...");
     
     selectors.traceTimeline.innerHTML = "";
     selectors.evalAssertions.innerHTML = "";
@@ -382,7 +382,7 @@ async function runReplayEngine(query) {
             // Show auto-heal banner
             selectors.healBtn.disabled = false;
             document.getElementById("healing-panel-title").textContent = "Dispute Failure Intercepted";
-            document.getElementById("healing-panel-desc").textContent = "Refund rejected. SRE proposes rule update to satisfy dispute.";
+            document.getElementById("healing-panel-desc").textContent = "Refund rejected. A candidate rule update is ready for replay.";
             selectors.healingPanel.style.display = "block";
             selectors.replayBtn.style.display = "none";
             selectors.diffPanel.style.display = "none";
@@ -390,7 +390,7 @@ async function runReplayEngine(query) {
         } else if (apiRunType === "hacky") {
             currentState.runState = "hacky_reject";
             addAgentMessage("⚠️ **Replay Gate Intercepted Regression**:\n\nThe proposed rules allow late checkouts, but failed security validations. Replay tests show that arbitrary guests can now trigger refunds without checkouts, breaching safety bounds. Promotion blocked.");
-            speakText("SRE Replay Gate rejected the proposed rule. Security regressions were detected.");
+            speakText("The replay gate rejected the proposed rule. Security regressions were detected.");
             
             // Update healing panel button to represent refinement
             selectors.healBtn.disabled = false;
@@ -402,13 +402,13 @@ async function runReplayEngine(query) {
         } else if (apiRunType === "robust") {
             currentState.runState = "robust_promote";
             addAgentMessage(data.response);
-            speakText("Rule verified and promoted to MongoDB Atlas cluster successfully.");
+            speakText("Rule verified and promoted to the version ledger successfully.");
             selectors.healingPanel.style.display = "none";
         }
         
     } catch (e) {
         console.error(e);
-        addSystemMessage("SRE API request failed: " + e.message);
+        addSystemMessage("Replay API request failed: " + e.message);
     }
 }
 
@@ -444,7 +444,7 @@ async function executeRulesRemediation() {
         
         selectors.recompileSpinner.style.display = "none";
         selectors.recompileStatus.innerHTML = `✅ Constrained rules compiled. Ready for Replay.`;
-        selectors.replayBtn.textContent = "⚡ Promote to MongoDB";
+        selectors.replayBtn.textContent = "Promote Version";
         selectors.replayBtn.style.display = "inline-flex";
         scrollToBottom(selectors.diffView);
     }
@@ -454,7 +454,7 @@ async function executePromotion() {
     selectors.replayBtn.style.display = "none";
     selectors.diffPanel.style.display = "none";
     
-    // Rerun using SRE engine
+    // Rerun using replay engine
     runReplayEngine(selectors.textInput.value);
 }
 
@@ -481,7 +481,7 @@ function updateDashboardMetrics(data, runType) {
         selectors.evalHeaderStatus.textContent = "PASSED";
         selectors.evalHeaderStatus.className = "badge badge-success";
         
-        // MongoDB Atlas Promoted
+        // Version promoted
         selectors.bpVersion.value = "v1.2.1";
         selectors.dbStateVal.textContent = "v1.2.1";
         selectors.dbStateVal.className = "metric-value text-green";

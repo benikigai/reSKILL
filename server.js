@@ -9,8 +9,8 @@ app.use(express.json());
 // Serve static client assets directly from the reSKILL root folder
 app.use(express.static(__dirname));
 
-// Simulated MongoDB Atlas SRE State
-let dbState = {
+// Simulated local version-ledger state
+let ledgerState = {
     connected: true,
     version: "v1.2.0",
     lastUpdated: new Date().toISOString(),
@@ -18,35 +18,34 @@ let dbState = {
     activeRules: "LATE_CHECKOUT_CHARGES_ARE_FINAL"
 };
 
-// Route to get MongoDB Atlas state
+// Route to get version-ledger state
 app.get('/api/state', (req, res) => {
     res.json({
         success: true,
-        source: "mongodb_atlas",
-        connectionString: "mongodb+srv://aie-cluster.mongodb.net/reskill-db",
-        state: dbState
+        source: "local_version_ledger",
+        state: ledgerState
     });
 });
 
-// Route to update SRE State (Simulating MongoDB version promotion / rollback)
+// Route to update version-ledger state
 app.post('/api/state/update', (req, res) => {
     const { version, activeRules, ruleHash } = req.body;
     
-    dbState.version = version || "v1.2.1";
-    dbState.activeRules = activeRules || "ALLOW_APPROVED_LATE_CHECKOUT_REFUNDS";
-    dbState.ruleHash = ruleHash || "sha256-8f3e5c928da0f9933a39e8a716c0dbf1246b934ea278d9b158";
-    dbState.lastUpdated = new Date().toISOString();
+    ledgerState.version = version || "v1.2.1";
+    ledgerState.activeRules = activeRules || "ALLOW_APPROVED_LATE_CHECKOUT_REFUNDS";
+    ledgerState.ruleHash = ruleHash || "sha256-8f3e5c928da0f9933a39e8a716c0dbf1246b934ea278d9b158";
+    ledgerState.lastUpdated = new Date().toISOString();
     
-    console.log(`MongoDB Atlas updated to ${dbState.version} | Rule active: ${dbState.activeRules}`);
+    console.log(`Version ledger updated to ${ledgerState.version} | Rule active: ${ledgerState.activeRules}`);
     
     res.json({
         success: true,
-        message: "State successfully promoted in MongoDB Atlas.",
-        state: dbState
+        message: "State successfully promoted in the version ledger.",
+        state: ledgerState
     });
 });
 
-// SRE A/B Replay Engine endpoint
+// A/B replay engine endpoint
 app.post('/api/replay', (req, res) => {
     const { runType, ruleText } = req.body;
     
@@ -68,10 +67,10 @@ app.post('/api/replay', (req, res) => {
     } else if (runType === "hacky") {
         return res.json(scenario.hacky_heal);
     } else if (runType === "robust") {
-        // Trigger MongoDB state update simulation
-        dbState.version = "v1.2.1";
-        dbState.activeRules = "ALLOW_APPROVED_LATE_CHECKOUT_REFUNDS";
-        dbState.lastUpdated = new Date().toISOString();
+        // Trigger version-ledger update simulation
+        ledgerState.version = "v1.2.1";
+        ledgerState.activeRules = "ALLOW_APPROVED_LATE_CHECKOUT_REFUNDS";
+        ledgerState.lastUpdated = new Date().toISOString();
         return res.json(scenario.robust_heal);
     }
     
@@ -87,7 +86,7 @@ app.post('/api/replay', (req, res) => {
             { "title": "Compile Custom Rule", "desc": "Ingesting custom rule parameters...", "time": "20ms", "status": "success" },
             { "title": "Replay Suite", "desc": "Running verification suites...", "time": "800ms", "status": "success" }
         ],
-        response: "Custom rule verified and promoted successfully to MongoDB Atlas."
+        response: "Custom rule verified and promoted successfully to the version ledger."
     });
 });
 
@@ -104,7 +103,7 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`====================================================`);
-    console.log(`reSKILL SRE Replay Gate Server running on http://localhost:${PORT}`);
-    console.log(`MongoDB Atlas simulation cluster: Connected`);
+    console.log(`reSKILL replay gate server running on http://localhost:${PORT}`);
+    console.log(`Local version ledger: ready`);
     console.log(`====================================================`);
 });

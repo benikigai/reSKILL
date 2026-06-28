@@ -655,7 +655,7 @@ body {
     box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
 }
 
-/* RIGHT PANE: SRE Replay Lab Panels */
+/* RIGHT PANE: Replay Lab Panels */
 .right-pane {
     overflow-y: auto;
 }

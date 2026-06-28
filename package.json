@@ -1,10 +1,12 @@
 {
   "name": "reskill-selection-gate",
   "version": "1.0.0",
-  "description": "reSKILL: a Gemini self-improvement selection gate for agent skills",
+  "description": "reSKILL: a sealed replay gate for self-improving agent skills",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check": "node --check server.js && node --check app.js && node --check scripts/gate.js && node --check scripts/speedrun.js",
+    "speedrun": "node scripts/speedrun.js"
   },
   "dependencies": {
     "express": "^5.2.1"

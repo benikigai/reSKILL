@@ -28,7 +28,7 @@
                 </div>
                 <button id="settings-btn" class="btn btn-secondary">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    Sponsor Keys
+                    Settings
                 </button>
             </div>
         </header>
@@ -39,7 +39,7 @@
             <!-- Left Pane: The Interactive Console -->
             <section class="pane left-pane">
                 <div class="pane-header">
-                    <h2>Interactive SRE Console</h2>
+                    <h2>Skill Replay Console</h2>
                     <span class="badge badge-accent">Human-in-the-Loop</span>
                 </div>
                 
@@ -64,9 +64,9 @@
                     </div>
                 </div>
 
-                <!-- Rules engine parameters / MongoDB Status -->
+                <!-- Rules engine parameters / version ledger status -->
                 <div class="droplet-config-container">
-                    <span class="section-label">Active Rules Engine (MongoDB State):</span>
+                    <span class="section-label">Active Skill Version:</span>
                     <div class="blueprint-grid">
                         <div class="blueprint-field">
                             <label>Rules Document ID</label>
@@ -77,13 +77,13 @@
                             <input type="text" id="bp-version" value="v1.2.0" readonly />
                         </div>
                         <div class="blueprint-field">
-                            <label>Database Target</label>
-                            <input type="text" id="bp-database" value="MongoDB Atlas Cluster" readonly />
+                            <label>Ledger Target</label>
+                            <input type="text" id="bp-database" value="Local Version Ledger" readonly />
                         </div>
                         <div class="blueprint-field">
                             <label>Promotion Status</label>
                             <div class="op-status-badge">
-                                <span class="op-status-icon">🍃</span>
+                                <span class="op-status-icon">v</span>
                                 <span id="bp-vault">Synced (v1.2.0)</span>
                             </div>
                         </div>
@@ -118,7 +118,7 @@
                 <div class="chat-container">
                     <div class="chat-history" id="chat-history">
                         <div class="message system-message">
-                            <p>William claims a refund for a late checkout charge. Speak or click "Run Agent" to evaluate. The SRE Replay Gate will intercept regressions.</p>
+                            <p>William claims a refund for a late checkout charge. Speak or click "Run Agent" to evaluate. The replay gate will intercept regressions.</p>
                         </div>
                     </div>
 
@@ -158,13 +158,13 @@
                         <span class="metric-sub">Broken historical cases</span>
                     </div>
                     <div class="metric-card">
-                        <span class="metric-label">MongoDB Atlas</span>
+                        <span class="metric-label">Version Ledger</span>
                         <div id="db-state-val" class="metric-value text-muted">v1.2.0</div>
                         <span class="metric-sub">Active version document</span>
                     </div>
                 </div>
 
-                <!-- Timeline / SRE Trace Area -->
+                <!-- Timeline / replay trace area -->
                 <div class="lab-section">
                     <h3 class="section-title">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon><line x1="11" y1="13" x2="22" y2="2"></line></svg>
@@ -172,7 +172,7 @@
                     </h3>
                     <div class="trace-timeline" id="trace-timeline">
                         <div class="trace-placeholder">
-                            Trigger an agent execution to view SRE trace.
+                            Trigger an agent execution to view the replay trace.
                         </div>
                     </div>
                 </div>
@@ -182,7 +182,7 @@
                     <div class="section-header-flex">
                         <h3 class="section-title">
                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            SRE Assertions & Regression Tests
+                            Skill Assertions & Regression Tests
                         </h3>
                         <span id="eval-header-status" class="badge">Awaiting Run</span>
                     </div>
@@ -196,7 +196,7 @@
                     <div class="healing-prompt-banner">
                         <div class="healing-header-row">
                             <div class="healing-title-group">
-                                <span class="healing-icon">🤖</span>
+                                <span class="healing-icon">AI</span>
                                 <div>
                                     <h4 id="healing-panel-title">Hacky Patch Captured</h4>
                                     <p id="healing-panel-desc">Rule modification causes security regression. Gate blocks promotion.</p>
@@ -211,7 +211,7 @@
                     <!-- Prompt Patch Diff Box -->
                     <div class="diff-container" id="diff-panel" style="display: none;">
                         <div class="diff-header">
-                            <span>SRE Rule Modification Diff</span>
+                            <span>Skill Rule Modification Diff</span>
                             <span class="badge badge-success">Diff Generated</span>
                         </div>
                         <div class="diff-view" id="diff-view">
@@ -223,7 +223,7 @@
                                 <span id="recompile-status">Recompiling prompts and executing A/B Replay...</span>
                             </div>
                             <button id="replay-btn" class="btn btn-accent" style="display: none;">
-                                ⚡ Promote to MongoDB
+                                Promote Version
                             </button>
                         </div>
                     </div>
@@ -237,16 +237,16 @@
     <div class="modal-overlay" id="settings-modal" style="display: none;">
         <div class="modal">
             <div class="modal-header">
-                <h3>Sponsor & Integration Credentials</h3>
+                <h3>Runtime Settings</h3>
                 <button class="modal-close" id="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body">
                 <p class="modal-desc">
-                    By default, the application runs in a highly visual **Cached Spine Mode** utilizing pre-recorded traces. Configure keys to enable live model compilation.
+                    By default, the application runs from a cached local spine. Configure an external provider only when you want to test live model compilation.
                 </p>
                 
                 <div class="form-group">
-                    <label for="provider-select">LLM Model Provider</label>
+                    <label for="provider-select">Model Provider</label>
                     <select id="provider-select">
                         <option value="simulated">Simulated Mode (No API keys needed)</option>
                         <option value="gemini">Google Gemini Developer API</option>
