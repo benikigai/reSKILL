@@ -1,37 +1,44 @@
 # reSKILL
-### Gemini self-improvement selection gate for agent skills
 
-reSKILL is a hackathon prototype for the AI Engineer World's Fair 2026. It is not a generic chatbot, not a dashboard-first project, and not a basic RAG app. The product is a controller that lets an agent propose edits to its own skill file, then forces those edits through a sealed A/B replay gate before anything can be promoted.
+**A sealed replay gate for self-improving agent skills.**
 
-Tagline: **AI that refuses its own bad edits.**
+reSKILL is a prototype controller for agent teams that rewrite their own operating instructions. Instead of promoting every model-proposed edit, reSKILL runs each candidate skill through a visible A/B gate: target failures must improve, held-out regression cases must stay intact, and only non-regressing versions are eligible for promotion.
 
-## What We Built
+The core idea is simple:
 
-The new work for the hackathon is the self-improvement controller:
+> AI should not just edit itself. It should reject its own unsafe edits.
 
-- Failure mining over real guest-ops traces.
-- Gemini 3.5 / Antigravity rewrite path for candidate `SKILL.md` changes.
-- A/B replay gate over failure traces plus held-out regression cases.
-- Promote / rollback decision flow for versioned skills.
-- A polished browser demo that makes the gate, diff, score, and rejection path visible.
+## Architecture
 
-Pre-existing production systems and traces are inputs. reSKILL is the controller around them.
+```mermaid
+flowchart LR
+  traces["Guest-ops traces"] --> miner["Failure cluster"]
+  skill["Current SKILL.md"] --> rewrite["Candidate skill rewrite"]
+  miner --> rewrite
+  rewrite --> gate["Sealed A/B replay gate"]
+  traces --> gate
+  heldout["Held-out regression cases"] --> gate
+  gate --> decision{"Promote?"}
+  decision -->|yes| ledger["Version ledger"]
+  decision -->|no| reject["Reject + record anti-pattern"]
+  ledger --> app["Browser demo"]
+  reject --> app
+```
 
-## Prize Alignment
+## What Is In This Repo
 
-- **Best Usage of Gemini 3.5:** managed-agent self-improvement via Interactions API.
-- **MongoDB Atlas:** versioned `skills`, `runs`, and anti-pattern memory.
-- **MiniMax:** failure mining and optional rubric judging.
-- **LiveKit:** optional live narration surface after the gate is stable.
-- **DigitalOcean:** optional public host, not a live droplet-creation demo.
-
-## Project Structure
-
-- `server.js` - Express backend and API spine.
-- `index.html` - Browser UI for the selection gate.
+- `server.js` - Express API for health, replay, cached spine, and version-ledger state.
+- `index.html` - Browser UI for the replay gate.
 - `index.css` - Visual system for the two-pane demo.
 - `app.js` - Frontend state, trace timeline, diff rendering, voice narration, and replay flow.
-- `package.json` - Node app metadata and start script.
+- `runs/spine.json` - Cached run used for deterministic demos.
+- `docs/specs/reskill.md` - Public product spec and acceptance criteria.
+- `docs/architecture.md` - Component diagram and data flow.
+- `data/dev-traces.json` - Public development traces.
+- `data/heldout-traces.sample.json` - Non-private sample held-out traces.
+- `skills/guest_dispute_resolution.md` - Example skill under test.
+- `scripts/gate.js` - Deterministic replay scorer.
+- `scripts/speedrun.js` - Reproducible local replay run and ledger writer.
 
 ## Run Locally
 
@@ -42,15 +49,35 @@ npm start
 
 Then open [http://localhost:8000](http://localhost:8000).
 
-## Demo Script
+## Reproduce The Gate
 
-1. Open by saying: "The production guest-ops agent and traces are input. What we built is reSKILL: the failure miner, Gemini rewrite path, A/B gate, and promote/rollback controller."
-2. Run the cached spine or local replay.
-3. Show the old skill failing a William-class refund dispute.
-4. Show Gemini proposing a candidate skill patch.
-5. Show the A/B gate checking both the failure cluster and hidden held-out cases.
-6. Land the line: "The future is not AI that edits itself. It is AI that refuses its own unsafe edits."
+Run a local, deterministic speedrun:
 
-## Current Build Priority
+```bash
+npm run speedrun
+```
 
-The UI shell exists. The next real engineering step is `POST /api/replay`: a backend replay harness that scores old vs candidate skill against dev and held-out traces, blocks regressions, and returns a promote/reject decision.
+This writes:
+
+- `runs/latest.json`
+- `runs/leaderboard.tsv`
+
+Try different local candidates:
+
+```bash
+RESKILL_CANDIDATE=baseline npm run speedrun
+RESKILL_CANDIDATE=overbroad npm run speedrun
+RESKILL_CANDIDATE=constrained npm run speedrun
+```
+
+## Demo Loop
+
+1. Load the William dispute case.
+2. Run the current skill and show the unresolved failure.
+3. Generate an overbroad rewrite that fixes William but breaks held-out safety cases.
+4. Watch the replay gate reject it.
+5. Refine the rule, rerun the gate, and promote only when regressions are zero.
+
+## Public Boundary
+
+This repository contains the public scaffold and sample data only. Private traces, production credentials, event strategy, and non-public research notes stay outside the repo.

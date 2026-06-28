@@ -1,0 +1,4 @@
+run_id	timestamp	candidate	dev_pass	dev_total	heldout_pass	heldout_total	regressions	reskill_score	decision
+run_20260628003118_constrained	2026-06-28T00:31:18.432Z	constrained	3	3	2	2	0	200	promote
+run_20260628003123_overbroad	2026-06-28T00:31:23.475Z	overbroad	1	3	0	2	2	-67	reject
+run_20260628003130_constrained	2026-06-28T00:31:30.048Z	constrained	3	3	2	2	0	200	promote
